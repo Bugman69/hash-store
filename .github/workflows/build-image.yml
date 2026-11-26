@@ -24,9 +24,12 @@ jobs:
       - name: Read version
         id: v
         run: echo "version=$(grep '^version:' hashhub-mining-hub/umbrel-app.yml | tr -d '\"' | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+      - name: Lowercase owner (ghcr.io rejects uppercase)
+        id: o
+        run: echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
       - uses: docker/build-push-action@v6
         with:
           context: hashhub-mining-hub/hub
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/hashhub-mining-hub:${{ steps.v.outputs.version }}
+          tags: ghcr.io/${{ steps.o.outputs.owner }}/hashhub-mining-hub:${{ steps.v.outputs.version }}
