@@ -1,0 +1,11 @@
+{
+  "id": "bitcoincash",
+  "name": "Bitcoin Cash",
+  "ticker": "BCH",
+  "algo": "sha256",
+  "stratum_port": 3334,
+  "address_regex": "^((bitcoincash:)?[qp][a-z0-9]{41}|[13][a-km-zA-HJ-NP-Z1-9]{25,34})$",
+  "address_hint": "bitcoincash:q... (CashAddr)",
+  "node_env": null,
+  "note": "Port 3334 is the SoloBCH Forge default. Requires the Bitcoin Cash Node app, fully synced. Node status is not shown unless you add a node_env block in /data/coins/bitcoincash.json."
+}
