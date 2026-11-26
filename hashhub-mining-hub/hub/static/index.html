@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HashHub</title>
+<style>
+:root{--bg:#f9f9f9;--card:#fff;--ink:#191919;--mute:#666666;--line:#e7e7e7;--axis:#c2c2c2;--accent:#c46a00;--ok:#1f8a4c;--bad:#c0392b;--warn:#b7791f;--s1:#257de0;--s2:#f47230;--s3:#00b894;--s4:#f2a600;--s5:#ee7fac;--s6:#008a17;--s7:#6a4ce2;--s8:#ec4647}
+@media (prefers-color-scheme:dark){:root{--bg:#0b0b0b;--card:#191919;--ink:#efefef;--mute:#9c9c9c;--line:#303030;--axis:#474747;--accent:#f0a040;--ok:#4cc27f;--bad:#ef6b5b;--warn:#e0b050;--s1:#338ced;--s2:#e76624;--s3:#00a888;--s4:#d28e05;--s5:#e24d8b;--s6:#0aac23;--s7:#9887ef;--s8:#eb6263}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:22px;margin:0 0 2px}h2{font-size:15px;margin:0 0 10px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute)}
+.sub{color:var(--mute);margin:0 0 18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.stat b{display:block;font-size:24px;font-variant-numeric:tabular-nums}.stat span{color:var(--mute);font-size:13px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:12px;color:var(--mute);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:var(--mute)}
+.dot.on{background:var(--ok)}.dot.off{background:var(--bad)}
+input,select,button{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+button{cursor:pointer;background:var(--accent);color:#fff;border-color:transparent;font-weight:600}
+button.ghost{background:transparent;color:var(--ink);border-color:var(--line);font-weight:400}
+button.sm{padding:3px 9px;font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--mute);flex:1;min-width:200px}
+label input{width:100%}
+.pill{font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--mute)}
+.pill.synced{color:var(--ok);border-color:var(--ok)}.pill.syncing{color:var(--warn);border-color:var(--warn)}.pill.unreachable{color:var(--bad);border-color:var(--bad)}
+.note{color:var(--mute);font-size:13px;margin:4px 0}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;display:none;max-width:90vw}
+.alertbox{border-color:var(--bad)}.alertbox div{color:var(--bad);font-weight:600}
+[hidden]{display:none!important}
+.seg{display:inline-flex;max-width:100%;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{background:transparent;color:var(--mute);border:0;border-radius:0;font-weight:500;padding:6px 12px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--card)}
+.chartwrap{position:relative;transition:opacity .15s}
+.chartwrap svg{display:block;width:100%;height:auto;touch-action:pan-y;outline-offset:2px}
+.ax{fill:var(--mute);font-size:11px}.gl{stroke:var(--line);stroke-width:1}.bl{stroke:var(--axis);stroke-width:1}
+.ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.dl{fill:var(--ink);font-size:11px}
+.tip{position:absolute;top:8px;pointer-events:none;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:0 2px 10px rgba(0,0,0,.12);min-width:150px;z-index:2}
+.tip .t{color:var(--mute);margin-bottom:4px}.tip .r{display:flex;align-items:center;gap:8px;margin:2px 0}.tip .r b{font-size:13px;font-variant-numeric:tabular-nums;margin-left:auto}.tip .r span.n{color:var(--mute)}
+.key{display:inline-block;width:14px;height:0;border-top:2px solid;vertical-align:middle;border-radius:2px;flex:none}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 4px;font-size:13px;color:var(--mute)}.legend span{display:inline-flex;align-items:center;gap:6px}
+.ctitle{font-size:13px;color:var(--mute);margin:10px 0 2px}
+.empty{color:var(--mute);padding:30px 0;text-align:center}
+.ev{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--mute);max-height:140px;overflow:auto}
+</style>
+</head>
+<body>
+<main>
+  <h1>HashHub</h1>
+  <p class="sub">Your miners, your nodes, your coins. Solo mining is a lottery: expect to learn, not to earn.</p>
+
+  <section class="card alertbox" id="alertBanner" hidden></section>
+
+  <section class="card"><div class="grid" id="totals"></div></section>
+
+  <section class="card"><h2>Nodes</h2><div class="row" id="nodes"></div></section>
+
+  <section class="card">
+    <h2>Miners</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Miner</th><th>Model</th><th class="n">TH/s</th><th class="n">Watts</th><th class="n">J/TH</th><th class="n">ASIC / VR °C</th><th class="n">Shares ok / rej</th><th>Mining</th><th></th></tr></thead>
+      <tbody id="miners"></tbody>
+    </table></div>
+    <h2 style="margin-top:18px">Add a miner</h2>
+    <div class="row">
+      <input id="mName" placeholder="Name (e.g. Nexus S1)" maxlength="32">
+      <input id="mHost" placeholder="IP or name.local">
+      <select id="mType"></select>
+      <button id="mAdd">Add</button>
+    </div>
+    <div class="row">
+      <input id="scanCidr" placeholder="Scan network, e.g. 192.168.1.0/24">
+      <button class="ghost" id="scanBtn">Scan for AxeOS miners</button>
+    </div>
+    <div id="scanOut" class="note"></div>
+  </section>
+
+  <section class="card" id="histCard">
+    <h2>History</h2>
+    <div class="row">
+      <div class="seg" id="rangeSeg" role="group" aria-label="Time range"></div>
+      <div class="seg" id="metricSeg" role="group" aria-label="Hashrate by miner, hashrate by coin, power or temperature"></div>
+      <div class="seg" id="viewSeg" role="group" aria-label="Chart or table"></div>
+    </div>
+    <div class="ctitle" id="chartTitle"></div>
+    <div class="chartwrap" id="chartWrap">
+      <svg id="chart" role="img" tabindex="0"></svg>
+      <div class="tip" id="tip" hidden></div>
+      <div class="empty" id="chartEmpty" hidden></div>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="note" id="histNote"></div>
+    <div class="tablewrap" id="histTable" hidden style="max-height:360px;overflow:auto"></div>
+    <h2 style="margin-top:16px">Over this range</h2>
+    <div class="tablewrap" id="histStats"></div>
+    <p class="note">Average TH/s counts time offline as zero, so it shows what the miner actually delivered. History is kept on your Umbrel for <span id="retDays">30</span> days, one sample per miner per minute. Removing a miner deletes its history.</p>
+  </section>
+
+  <section class="card">
+    <h2>Pool &amp; payout settings</h2>
+    <div class="row"><label>Stratum host (use your Umbrel's LAN IP, miners often can't resolve .local)
+      <input id="stratumHost"></label></div>
+    <div class="row" id="addrRow"></div>
+    <h2 style="margin-top:18px">Fallback pools (optional)</h2>
+    <p class="note">Used by a miner only if your own stratum server stops answering. Each fallback must be a pool for the <b>same coin</b> as its row. Leave the username empty to reuse your payout address for that coin.</p>
+    <div id="fbRows"></div>
+    <div class="row"><button id="saveCfg">Save settings</button>
+      <button class="ghost" id="applyBtn">Push to miners now (restarts them)</button></div>
+    <p class="note">Saving does not touch running miners. They pick up new pool and fallback settings the next time you switch their coin, or when you push.</p>
+    <p class="note">Double-check every address character by character. A block paid to a mistyped address is gone.</p>
+  </section>
+
+  <section class="card">
+    <h2>Alerts</h2>
+    <p class="note">HashHub tells you when a miner goes offline, hashes at 0 TH/s, drops to its fallback pool, or a node becomes unreachable, and again when it recovers. Everything also appears in Activity below.</p>
+    <div class="row">
+      <label>Webhook URL <input id="alWebhook" type="password" autocomplete="off" placeholder="not set"></label>
+      <label style="flex:0 0 160px;min-width:140px">Format <select id="alFormat"></select></label>
+      <label style="flex:0 0 160px;min-width:140px">Alert after (seconds) <input id="alDelay" type="number" min="30" max="3600"></label>
+    </div>
+    <div class="row"><button id="alSave">Save alerts</button><button class="ghost" id="alTest">Send test</button><button class="ghost" id="alClear">Remove webhook</button><span class="note" id="alState"></span></div>
+    <p class="note">ntfy: use https://ntfy.sh/your-secret-topic (or your own server). Discord and Slack: paste the incoming-webhook URL. "json" posts {title, message, time} for anything else. The URL is stored on your Umbrel and never sent back to this page.</p>
+  </section>
+
+  <section class="card">
+    <h2>Schedules</h2>
+    <div id="schedules"></div>
+    <div class="row">
+      <select id="sMiners"></select>
+      <select id="sCoin"></select>
+      <input id="sStart" type="time" value="22:00"> <span class="note">to</span>
+      <input id="sEnd" type="time" value="06:00">
+      <select id="sDefault"></select>
+      <button id="sAdd">Add schedule</button>
+    </div>
+    <p class="note">Picks the coin during the window, and the "otherwise" coin outside it. Schedules override manual switches for the miners they cover. Times use the container's timezone.</p>
+  </section>
+
+  <section class="card"><h2>Activity</h2><div class="ev" id="events"></div></section>
+</main>
+<div id="toast"></div>
+<script>
+const h=(t,a={},...c)=>{const e=document.createElement(t);for(const[k,v]of Object.entries(a)){if(k==='class')e.className=v;else if(k.startsWith('on'))e.addEventListener(k.slice(2),v);else e.setAttribute(k,v)}for(const x of c.flat())e.append(x&&x.nodeType?x:document.createTextNode(x??''));return e};
+const $=id=>document.getElementById(id);
+let S=null,built=false;
+function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',4500)}
+async function api(method,path,body){
+  const r=await fetch(path,{method,headers:{'Content-Type':'application/json','X-HashHub':'1'},body:method==='GET'?undefined:JSON.stringify(body||{})});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(j.error||('HTTP '+r.status));return j}
+const act=async(fn,ok)=>{try{await fn();if(ok)toast(ok);await load(true);if(typeof loadHist==='function'&&H.data)loadHist()}catch(e){toast(e.message)}};
+const coinName=id=>(S.coins.find(c=>c.id===id)||{}).ticker||'?';
+const fmt=(v,d=1)=>v==null||v===''?'-':Number(v).toFixed(d);
+
+function renderTotals(){
+  const t=S.totals,jth=t.hashrate_ths>0?t.power_w/t.hashrate_ths:null;
+  const stats=[[fmt(t.hashrate_ths,2),'TH/s total'],[fmt(t.power_w,0),'watts'],[fmt(jth,1),'J/TH fleet'],
+    [S.miners.filter(m=>m.online).length+' / '+S.miners.length,'miners online']];
+  for(const[k,v]of Object.entries(t.by_coin))stats.push([fmt(v,2),'TH/s on '+coinName(k)]);
+  $('totals').replaceChildren(...stats.map(([a,b])=>h('div',{class:'stat'},h('b',{},a),h('span',{},b))));
+}
+function renderNodes(){
+  $('nodes').replaceChildren(...S.coins.map(c=>{const n=S.nodes[c.id]||{state:'not_configured'};
+    const extra=n.height?` · block ${n.height.toLocaleString()}`+(n.state==='syncing'?` · ${(n.progress*100).toFixed(1)}%`:''):'';
+    return h('div',{class:'pill '+n.state,title:c.note||''},`${c.name} (${c.ticker}): ${n.state.replace('_',' ')}${extra}`)}));
+}
+function renderMiners(){
+  if(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#miners'))return;
+  $('miners').replaceChildren(...S.miners.map(m=>{
+    const sel=h('select',{onchange:e=>act(()=>api('POST',`/api/miners/${encodeURIComponent(m.name)}/coin`,{coin:e.target.value}),`Switching ${m.name}, it restarts...`)},
+      h('option',{value:''},m.coin?'':'(unknown pool)'),...S.coins.filter(c=>c.algo===(m.algo||'sha256')).map(c=>h('option',{value:c.id},c.name)));
+    sel.value=m.coin||'';
+    const jth=m.online&&m.hashrate_ths>0&&m.power_w?m.power_w/m.hashrate_ths:null;
+    return h('tr',{},
+      h('td',{},h('span',{class:'dot '+(m.online?'on':m.online===false?'off':'')}),m.name,m.using_fallback?h('span',{class:'pill unreachable',style:'margin-left:6px'},'on fallback pool'):'',h('div',{class:'note'},m.online===false?(m.error||'offline'):m.host+(m.type==='harlo'?' · Harlo-OS (experimental)':''))),
+      h('td',{},m.model||'-'),h('td',{class:'n'},fmt(m.hashrate_ths,2)),h('td',{class:'n'},fmt(m.power_w,0)),h('td',{class:'n'},fmt(jth,1)),
+      h('td',{class:'n'},`${fmt(m.temp,0)} / ${fmt(m.vr_temp,0)}`),h('td',{class:'n'},`${m.accepted??'-'} / ${m.rejected??'-'}`),
+      h('td',{},sel),
+      h('td',{},h('button',{class:'ghost sm',onclick:()=>{if(confirm(`Remove ${m.name} from HashHub? (The miner itself is untouched; its recorded history is deleted.)`))act(()=>api('DELETE',`/api/miners/${encodeURIComponent(m.name)}`),'Removed')}},'Remove')));
+  }));
+}
+function renderSchedules(){
+  $('schedules').replaceChildren(...(S.schedules.length?S.schedules.map(s=>h('div',{class:'row'},
+    h('span',{},`${s.miners==='*'?'All miners':s.miners.join(', ')}: ${coinName(s.coin)} from ${s.start} to ${s.end}`+(s.default_coin?`, otherwise ${coinName(s.default_coin)}`:'')),
+    h('button',{class:'ghost sm',onclick:()=>act(()=>api('DELETE','/api/schedules/'+s.id),'Removed')},'Delete'))):[h('p',{class:'note'},'No schedules. Miners only change coin when you switch them.')]));
+}
+const KIND={offline:'offline',idle:'online but not hashing',fallback:'on its fallback pool',node:'node unreachable'};
+function renderAlerts(){
+  const a=S.alerts.active,b=$('alertBanner');b.hidden=!a.length;
+  b.replaceChildren(...a.map(x=>h('div',{},`${x.kind==='node'?coinName(x.name)+' node':x.name}: ${KIND[x.kind]||x.kind}`)));
+}
+function buildForms(){
+  $('mType').replaceChildren(...S.miner_types.map(t=>h('option',{value:t},t==='harlo'?'Harlo-OS (experimental)':'AxeOS (Bitaxe, Nexus S1)')));
+  $('stratumHost').value=S.stratum_host;
+  $('addrRow').replaceChildren(...S.coins.map(c=>{const i=h('input',{id:'addr_'+c.id,placeholder:c.address_hint||'',spellcheck:'false'});i.value=S.addresses[c.id]||'';return h('label',{},`${c.name} payout address`,i)}));
+  $('fbRows').replaceChildren(...S.coins.map(c=>{const f=S.fallbacks[c.id]||{};
+    const mk=(k,ph,w)=>{const i=h('input',{id:`fb_${k}_${c.id}`,placeholder:ph,spellcheck:'false',style:`width:${w}px`});i.value=f[k]??'';return i};
+    return h('div',{class:'row'},h('b',{style:'min-width:110px'},c.name),mk('host','pool host, e.g. solo.ckpool.org',230),mk('port','port',80),mk('user','username (optional)',260))}));
+  $('alFormat').replaceChildren(...S.alerts.formats.map(f=>h('option',{value:f},f)));
+  $('alFormat').value=S.alerts.format;$('alDelay').value=S.alerts.offline_after_s;
+  $('alWebhook').placeholder=S.alerts.webhook_host?`set (${S.alerts.webhook_host}), type to replace`:'not set';
+  const coinOpts=(el,blank)=>el.replaceChildren(...(blank?[h('option',{value:''},'otherwise: leave as is')]:[]),...S.coins.map(c=>h('option',{value:c.id},blank?'otherwise: '+c.name:c.name)));
+  coinOpts($('sCoin'));coinOpts($('sDefault'),true);
+  $('sMiners').replaceChildren(h('option',{value:'*'},'All miners'),...S.miners.map(m=>h('option',{value:m.name},m.name)));
+  built=true;
+}
+async function load(rebuild){
+  try{S=await api('GET','/api/state');
+    if(!built||rebuild)buildForms();
+    renderTotals();renderNodes();renderMiners();renderSchedules();renderAlerts();
+    $('events').replaceChildren(...S.events.slice().reverse().map(e=>h('div',{},`${e.t}  ${e.msg}`)));
+  }catch(e){toast('Lost contact with HashHub: '+e.message)}
+}
+$('mAdd').onclick=()=>act(()=>api('POST','/api/miners',{name:$('mName').value,host:$('mHost').value,type:$('mType').value}),'Miner added');
+$('scanBtn').onclick=async()=>{$('scanOut').textContent='Scanning...';try{
+  const {found}=await api('POST','/api/scan',{cidr:$('scanCidr').value});
+  $('scanOut').replaceChildren(found.length?'Found: ':'Nothing found. ',...found.map(f=>h('button',{class:'ghost sm',onclick:()=>{$('mHost').value=f.host;$('mName').value=f.hostname||f.model||'';}},`${f.hostname||f.model||'miner'} @ ${f.host}`)));
+}catch(e){$('scanOut').textContent=e.message}};
+$('saveCfg').onclick=()=>{const addresses={},fallbacks={};
+  S.coins.forEach(c=>{addresses[c.id]=$('addr_'+c.id).value;fallbacks[c.id]={host:$('fb_host_'+c.id).value,port:$('fb_port_'+c.id).value,user:$('fb_user_'+c.id).value}});
+  act(()=>api('POST','/api/config',{stratum_host:$('stratumHost').value.trim(),addresses,fallbacks}),'Saved')};
+$('applyBtn').onclick=()=>{if(confirm('This rewrites pool settings on every online miner and restarts them. Continue?'))
+  act(async()=>{const r=await api('POST','/api/apply');toast(`Updated ${r.updated} miner(s), restarting...`)})};
+const alBody=()=>({alerts:{format:$('alFormat').value,offline_after_s:Number($('alDelay').value),...($('alWebhook').value.trim()?{webhook:$('alWebhook').value.trim()}:{})}});
+$('alSave').onclick=()=>act(async()=>{await api('POST','/api/config',alBody());$('alWebhook').value=''},'Alert settings saved');
+$('alClear').onclick=()=>act(()=>api('POST','/api/config',{alerts:{clear_webhook:true}}),'Webhook removed');
+$('alTest').onclick=()=>act(async()=>{await api('POST','/api/config',alBody());$('alWebhook').value='';await api('POST','/api/alerts/test');$('alState').textContent='Test sent '+new Date().toLocaleTimeString()},'Test alert sent');
+$('sAdd').onclick=()=>{const m=$('sMiners').value;act(()=>api('POST','/api/schedules',{miners:m==='*'?'*':[m],coin:$('sCoin').value,start:$('sStart').value,end:$('sEnd').value,default_coin:$('sDefault').value}),'Schedule added')};
+/* ---------- history charts ---------- */
+const NS='http://www.w3.org/2000/svg';
+const sv=(t,a={},...c)=>{const e=document.createElementNS(NS,t);for(const[k,v]of Object.entries(a))e.setAttribute(k,v);for(const x of c.flat())if(x)e.append(x);return e};
+const RANGES=[['1h','1 h'],['24h','24 h'],['7d','7 d'],['30d','30 d']];
+const KEYS={'hr-miner':{label:'Hashrate by miner',short:'By miner',metric:'hashrate',unit:'TH/s',dec:2},'hr-coin':{label:'Hashrate by coin',short:'By coin',metric:'hashrate',unit:'TH/s',dec:2},
+  'power':{label:'Power',short:'Power',metric:'power',unit:'W',dec:0},'temp':{label:'ASIC temperature',short:'Temp',metric:'temp',unit:'°C',dec:0}};
+const RANGE_NAME={'1h':'last hour','24h':'last 24 hours','7d':'last 7 days','30d':'last 30 days'};
+const H={range:'24h',key:'hr-miner',view:'chart',data:null,seq:0,idx:null};
+const num=(v,d)=>v==null?'-':Number(v).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d});
+function seg(el,items,get,set){el.replaceChildren(...items.map(([k,l])=>h('button',{type:'button','aria-pressed':String(get()===k),onclick:()=>{set(k);seg(el,items,get,set)}},l)))}
+function buildHistControls(){
+  seg($('rangeSeg'),RANGES,()=>H.range,k=>{H.range=k;loadHist()});
+  seg($('metricSeg'),Object.entries(KEYS).map(([k,v])=>[k,v.short]),()=>H.key,k=>{const m=KEYS[H.key].metric!==KEYS[k].metric;H.key=k;m?loadHist():renderHist()});
+  seg($('viewSeg'),[['chart','Chart'],['table','Table']],()=>H.view,k=>{H.view=k;renderHist()});
+}
+async function loadHist(){
+  const my=++H.seq,w=$('chartWrap');w.style.opacity=.55;   // keep the old frame while refetching
+  try{const d=await api('GET',`/api/history?range=${H.range}&metric=${KEYS[H.key].metric}`);if(my!==H.seq)return;H.data=d;renderHist()}
+  catch(e){toast(e.message)}finally{if(my===H.seq)w.style.opacity=1}
+}
+function histSeries(){
+  const d=H.data,out=[];let hidden=0;
+  if(H.key==='hr-coin'){
+    for(const c of S.coins){const v=d.coins[c.id];if(v&&v.some(x=>x!=null))out.push({id:c.id,name:c.name,slot:S.coin_slots[c.id]||0,vals:v})}
+    if(out.length>1&&d.total)out.push({id:'total',name:'Total',total:true,vals:d.total});
+  }else{
+    for(const m of S.miners){const v=d.miners[m.name];if(!v||!v.some(x=>x!=null))continue;if(!m.slot){hidden++;continue}out.push({id:m.name,name:m.name,slot:m.slot,vals:v})}
+    if(d.total&&S.miners.length>1)out.push({id:'total',name:'Total',total:true,vals:d.total});
+  }
+  return {series:out.filter(s=>s.total||s.slot),hidden};
+}
+const colorOf=s=>s.total?'var(--ink)':`var(--s${s.slot})`;
+function niceTicks(lo,hi,n=5){const span=(hi-lo)||1,raw=span/n,p=10**Math.floor(Math.log10(raw)),f=raw/p,step=(f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p;
+  const a=Math.floor(lo/step+1e-9)*step,b=Math.ceil(hi/step-1e-9)*step,t=[];for(let v=a;v<=b+step/1e6;v+=step)t.push(+v.toFixed(10));return{ticks:t,step,lo:a,hi:b}}
+function xTicks(t0,t1,range){
+  const [u,n]={'1h':['m',10],'24h':['h',4],'7d':['d',1],'30d':['d',5]}[range],out=[],d=new Date(t0*1000);
+  if(u==='d'){d.setHours(0,0,0,0);if(d.getTime()<t0*1000)d.setDate(d.getDate()+1)}
+  else if(u==='h'){d.setMinutes(0,0,0);while(d.getHours()%n||d.getTime()<t0*1000)d.setHours(d.getHours()+1)}
+  else{d.setSeconds(0,0);while(d.getMinutes()%n||d.getTime()<t0*1000)d.setMinutes(d.getMinutes()+1)}
+  while(d.getTime()<=t1*1000){out.push(d.getTime()/1000);u==='d'?d.setDate(d.getDate()+n):u==='h'?d.setHours(d.getHours()+n):d.setMinutes(d.getMinutes()+n)}
+  return out}
+const xLabel=(t,range)=>{const d=new Date(t*1000);return range==='7d'?d.toLocaleDateString([],{weekday:'short',day:'numeric'}):range==='30d'?d.toLocaleDateString([],{month:'short',day:'numeric'}):d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})};
+const fullTime=t=>new Date(t*1000).toLocaleString([],{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+
+function renderHist(){
+  if(!H.data||!S)return;
+  const d=H.data,k=KEYS[H.key],{series,hidden}=histSeries(),svg=$('chart'),empty=$('chartEmpty');
+  $('retDays').textContent=d.retention_days;
+  $('chartTitle').textContent=`${k.label} (${k.unit}), ${RANGE_NAME[H.range]}`;
+  $('histNote').textContent=hidden?`${hidden} more miner${hidden>1?'s':''} ${hidden>1?'are':'is'} in the total but not drawn: charts show up to 8 miners.`:'';
+  const has=series.length>0,chartOn=has&&H.view==='chart';
+  svg.toggleAttribute('hidden',!chartOn);empty.hidden=has;$('histTable').hidden=!(has&&H.view==='table');
+  if(!has)empty.textContent=S.miners.length?'No history yet. HashHub stores one sample per miner per minute, so this fills in shortly.':'Add a miner to start recording history.';
+  $('legend').replaceChildren(...(series.length>1?series.map(s=>h('span',{},h('i',{class:'key',style:`border-color:${colorOf(s)}`}),s.name)):[]));
+  H.idx=null;$('tip').hidden=true;
+  if(chartOn)drawChart(svg,series,k);
+  if(has&&H.view==='table')drawTable(series,k);
+  drawStats();
+}
+function drawChart(svg,series,k){
+  const d=H.data,W=Math.max(300,$('chartWrap').clientWidth||640),Ht=300,direct=series.length<=4&&W>=560;
+  const m={t:12,r:direct?128:14,b:28,l:48},pw=W-m.l-m.r,ph=Ht-m.t-m.b,t0=d.buckets[0],t1=d.buckets[d.buckets.length-1];
+  const all=series.flatMap(s=>s.vals).filter(v=>v!=null);let lo=0,hi=Math.max(...all,0);
+  if(H.key==='temp'&&all.length){lo=Math.min(...all)-2;hi=Math.max(...all)+2}
+  const nt=niceTicks(lo,hi===lo?lo+1:hi*(H.key==='temp'?1:1.06));if(H.key!=='temp')nt.lo=0;
+  const X=t=>m.l+(t-t0)/((t1-t0)||1)*pw,Y=v=>m.t+ph-(v-nt.lo)/((nt.hi-nt.lo)||1)*ph;
+  svg.setAttribute('viewBox',`0 0 ${W} ${Ht}`);svg.replaceChildren();
+  svg.setAttribute('aria-label',`${k.label} line chart, ${RANGE_NAME[H.range]}. Use left and right arrow keys to read values, or switch to Table.`);
+  const tf=(v)=>nt.step>=1?num(v,0):num(v,nt.step<0.1?2:1);
+  for(const v of nt.ticks){const y=Y(v);if(y<m.t-1||y>m.t+ph+1)continue;
+    svg.append(sv('line',{class:v===nt.lo?'bl':'gl',x1:m.l,x2:m.l+pw,y1:y,y2:y}),sv('text',{class:'ax',x:m.l-8,y:y+4,'text-anchor':'end'},tf(v)))}
+  let xt=xTicks(t0,t1,H.range);if(pw<420)xt=xt.filter((_,i)=>i%2===0);
+  for(const t of xt)svg.append(sv('text',{class:'ax',x:X(t),y:Ht-8,'text-anchor':'middle'},xLabel(t,H.range)));
+  const ends=[];
+  for(const s of series){   // lines break at gaps instead of bridging them
+    let path='',run=[];const flush=()=>{if(run.length)path+='M'+run.map(p=>p.join(' ')).join('L')+(run.length===1?`L${run[0].join(' ')}`:'');run=[]};
+    s.vals.forEach((v,i)=>{if(v==null)flush();else run.push([X(d.buckets[i]).toFixed(1),Y(v).toFixed(1)])});flush();
+    const p=sv('path',{class:'ln',d:path});p.style.stroke=colorOf(s);svg.append(p);
+    for(let i=s.vals.length-1;i>=0;i--)if(s.vals[i]!=null){ends.push({s,x:X(d.buckets[i]),y:Y(s.vals[i]),v:s.vals[i]});break}
+  }
+  const ys=ends.map(e=>e.y).sort((a,b)=>a-b),room=direct&&ys.every((y,i)=>!i||y-ys[i-1]>=14);   // labels never stack: if lines converge the legend + tooltip carry identity
+  for(const e of ends){const c=sv('circle',{cx:e.x,cy:e.y,r:4,'stroke-width':2});c.style.fill=colorOf(e.s);c.style.stroke='var(--card)';svg.append(c);
+    if(room)svg.append(sv('text',{class:'dl',x:e.x+10,y:e.y+4},`${e.s.name.length>12?e.s.name.slice(0,11)+'…':e.s.name} ${num(e.v,k.dec)}`))}
+  const cross=sv('line',{class:'bl',y1:m.t,y2:m.t+ph,visibility:'hidden'}),dots=series.map(s=>{const c=sv('circle',{r:4,'stroke-width':2,visibility:'hidden'});c.style.fill=colorOf(s);c.style.stroke='var(--card)';return c});
+  svg.append(cross,...dots);
+  const show=i=>{
+    H.idx=i;const t=d.buckets[i],x=X(t);cross.setAttribute('x1',x);cross.setAttribute('x2',x);cross.setAttribute('visibility','visible');
+    const tip=$('tip');tip.replaceChildren(h('div',{class:'t'},fullTime(t)+(H.range==='1h'?'':` (avg of ${Math.round(d.bucket_s/60)} min)`)));
+    series.forEach((s,j)=>{const v=s.vals[i];dots[j].setAttribute('visibility',v==null?'hidden':'visible');if(v!=null){dots[j].setAttribute('cx',x);dots[j].setAttribute('cy',Y(v))}
+      tip.append(h('div',{class:'r'},h('i',{class:'key',style:`border-color:${colorOf(s)}`}),h('span',{class:'n'},s.name),h('b',{},v==null?'no data':`${num(v,k.dec)} ${k.unit}`)))});
+    tip.hidden=false;const sc=$('chartWrap').clientWidth/W,tw=tip.offsetWidth,px=x*sc;tip.style.left=Math.max(0,px+14+tw>$('chartWrap').clientWidth?px-tw-14:px+14)+'px';
+  };
+  const hide=()=>{H.idx=null;$('tip').hidden=true;cross.setAttribute('visibility','hidden');dots.forEach(c=>c.setAttribute('visibility','hidden'))};
+  const near=ev=>{const r=svg.getBoundingClientRect(),t=t0+((ev.clientX-r.left)/r.width*W-m.l)/pw*(t1-t0);return Math.max(0,Math.min(d.buckets.length-1,Math.round((t-t0)/d.bucket_s)))};
+  svg.onpointermove=ev=>show(near(ev));svg.onpointerleave=hide;svg.onblur=hide;
+  svg.onfocus=()=>show(H.idx??d.buckets.length-1);
+  svg.onkeydown=ev=>{if(ev.key==='ArrowLeft'||ev.key==='ArrowRight'){ev.preventDefault();show(Math.max(0,Math.min(d.buckets.length-1,(H.idx??d.buckets.length-1)+(ev.key==='ArrowLeft'?-1:1))))}};
+}
+function drawTable(series,k){   // the table twin of the chart: every plotted value, newest first
+  const d=H.data,rows=[];
+  for(let i=d.buckets.length-1;i>=0&&rows.length<500;i--)if(series.some(s=>s.vals[i]!=null))rows.push(i);
+  $('histTable').replaceChildren(h('table',{},h('thead',{},h('tr',{},h('th',{},'Time'),...series.map(s=>h('th',{class:'n'},`${s.name} (${k.unit})`)))),
+    h('tbody',{},...rows.map(i=>h('tr',{},h('td',{},fullTime(d.buckets[i])),...series.map(s=>h('td',{class:'n'},num(s.vals[i],k.dec))))))));
+}
+function drawStats(){
+  const st=H.data.stats,ms=S.miners.filter(m=>st[m.name]);
+  $('histStats').replaceChildren(ms.length?h('table',{},h('thead',{},h('tr',{},h('th',{},'Miner'),h('th',{class:'n'},'Avg TH/s'),h('th',{class:'n'},'Peak TH/s'),h('th',{class:'n'},'Uptime'))),
+    h('tbody',{},...ms.map(m=>{const x=st[m.name];return h('tr',{},h('td',{},m.slot?h('i',{class:'key',style:`border-color:var(--s${m.slot});margin-right:8px`}):'',m.name),
+      h('td',{class:'n'},num(x.avg_ths,2)),h('td',{class:'n'},num(x.peak_ths,2)),h('td',{class:'n'},num(x.uptime_pct,1)+'%'))}))):h('p',{class:'note'},'Nothing recorded yet.'));
+}
+let rz;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(renderHist,150)});
+buildHistControls();
+load(true).then(loadHist);setInterval(()=>load(false),10000);setInterval(loadHist,60000);
+</script>
+</body>
+</html>

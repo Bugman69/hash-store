@@ -1,0 +1,27 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: hashhub-mining-hub_web_1
+      APP_PORT: 8420
+
+  web:
+    # Replace YOUR_GITHUB_USER after the GitHub Action in this repo has built the image.
+    image: ghcr.io/YOUR_GITHUB_USER/hashhub-mining-hub:0.3.0
+    restart: on-failure
+    stop_grace_period: 15s
+    volumes:
+      - ${APP_DATA_DIR}/data:/data
+    environment:
+      HUB_PORT: 8420
+      HUB_DATA: /data
+      # Miners are ESP32 devices; .local names often fail to resolve on them.
+      # Set the real stratum host to your Umbrel's LAN IP in the HashHub settings panel.
+      HUB_STRATUM_HOST: ${DEVICE_DOMAIN_NAME}
+      TZ: America/New_York
+      # Umbrel injects these because umbrel-app.yml depends on the bitcoin app.
+      APP_BITCOIN_NODE_IP: ${APP_BITCOIN_NODE_IP}
+      APP_BITCOIN_RPC_PORT: ${APP_BITCOIN_RPC_PORT}
+      APP_BITCOIN_RPC_USER: ${APP_BITCOIN_RPC_USER}
+      APP_BITCOIN_RPC_PASS: ${APP_BITCOIN_RPC_PASS}
